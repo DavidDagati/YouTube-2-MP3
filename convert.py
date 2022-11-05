@@ -1,10 +1,7 @@
 import youtube_dl
-# import re
 
-def run():
 
-    video_url= input("Enter YouTube URL: ")
-    video_info= youtube_dl.YoutubeDL().extract_info(url= video_url,download= False)
+def to_mp3(video_info):
 
     # yn = input(f"Is {video_info['title']} a Suitable Name? (Y/N): ")
 
@@ -35,6 +32,21 @@ def run():
 
     print(f"{filename} Download Complete!")
 
-if __name__=='__main__':
+def to_mp4(video_info):
 
-    run()
+    filename = f"{video_info['title']}.mp4"
+        
+    options= {
+                'format': 'bestvideo[ext=mp4]',
+                'keepvideo': False,
+                'outtmpl': filename,
+            }
+
+
+
+    with youtube_dl.YoutubeDL(options) as ydl:
+        ydl.download([video_info['webpage_url']])
+
+    
+
+    print(f"{filename} Download Complete!")    
