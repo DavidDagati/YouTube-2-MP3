@@ -37,9 +37,9 @@ if __name__=='__main__':
     filetype = select_output()
     name = select_filename()
 
-    if filetype == "MP3" or "mp3":
+    if filetype in ["MP3", "mp3", "3"]:
         filename = name + ".mp3"
         to_mp3(filename, video_info)
-    elif filetype == "MP4" or "mp4":
-        filename = name + "mp4"
+    elif filetype in ["MP4", "mp4", "4"]:
+        filename = name + ".mp4"
         to_mp4(filename, video_info)

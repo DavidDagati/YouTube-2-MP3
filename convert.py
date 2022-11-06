@@ -22,7 +22,7 @@ def to_mp3(filename, video_info):
 def to_mp4(filename, video_info):
         
     options= {
-                'format': 248,
+                'format': 'bestvideo[ext=mp4]+bestaudio[ext=mp4]/mp4',
                 'keepvideo': False,
                 'outtmpl': filename,
             }
