@@ -5,7 +5,7 @@ import youtube_dl
 def to_mp3(filename, video_info):
         
     options= {
-                'format': 'bestaudio/best',
+                'format': 'bestaudio/best[ext=mp3]',
                 'keepvideo': False,
                 'outtmpl': filename,
             }
