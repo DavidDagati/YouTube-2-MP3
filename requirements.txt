@@ -1,3 +1,4 @@
 kivy == 2.1.0
+kivymd == 1.1.1
 pathvalidate == 2.5.2 
 youtube_dl == 2021.12.17

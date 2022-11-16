@@ -1,20 +1,19 @@
+import os
+import shutil
+import youtube_dl
+from pathvalidate import sanitize_filepath
 from kivymd.app import MDApp
 from kivymd.uix.screen import Screen
 from kivymd.uix.button import MDRectangleFlatButton
-from kivymd.uix.menu import MDDropdownMenu
-from kivy.properties import ObjectProperty
 from kivymd.uix.dialog import MDDialog
 from kivy.lang import Builder
-
-from convert import to_mp3, to_mp4
-
 
 url_helper = """
 MDTextField:
     hint_text: "Enter URL"
     helper_text: "Youtube URL"
     helper_text_mode: "on_focus"
-    pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+    pos_hint: {'center_x': 0.5, 'center_y': 0.75}
     size_hint_x: None
     width: 300
 """
@@ -24,7 +23,7 @@ MDTextField:
     hint_text: "Enter a filename"
     helper_text: "Filename"
     helper_text_mode: "on_focus"
-    pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
     size_hint_x: None
     width: 300
 """
@@ -33,51 +32,90 @@ class YoutubeConverter(MDApp):
     def build(self):
 
         screen = Screen()
+
+        self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Red"
-
-        format_button = MDRectangleFlatButton(text= "Select Format",
-                                       pos_hint= {'center_x': 0.5, 'center_y': 0.4},
-                                       on_release= self.format_dropdown.open(self))
-
-        convert_button = MDRectangleFlatButton(text= "Convert",
-                                       pos_hint= {'center_x': 0.5, 'center_y': 0.2},
-                                       on_release= self.converter)
+           
         self.filename = Builder.load_string(filename_helper)
         self.url = Builder.load_string(url_helper)
 
+        self.mp3_button = MDRectangleFlatButton(text= "Convert to MP3",
+                                           pos_hint= {'center_x': 0.4, 'center_y': 0.25})
+        self.mp3_button.bind(on_release= to_mp3)
+
+        self.mp4_button = MDRectangleFlatButton(text= "Convert to MP4",
+                                           pos_hint= {'center_x': 0.6, 'center_y': 0.25})
+        self.mp4_button.bind(on_release= to_mp4)                            
 
         screen.add_widget(self.url)
         screen.add_widget(self.filename)
-        screen.add_widget(format_button)
-        screen.add_widget(convert_button)
+        screen.add_widget(self.mp3_button)
+        screen.add_widget(self.mp4_button)
 
         return screen
 
-    def on_start(self):
-        format_dropdown = ObjectProperty()
+def check_directory():
 
-        self.format_dropdown = MDDropdownMenu(width_mult=3)
+    current = os.getcwd()
+    search = "\\Downloaded"
 
-        self.format_dropdown.items.append(
-                            {"viewclass": "MDMenuItem",
-                            "text": "MP3",
-                            "callback": self.format_callback},
-                            {"viewclass": "MDMenuItem",
-                            "text": "MP4",
-                            "callback": self.format_callback}
-                        )
+    if not os.path.isdir(current + search):
+        os.mkdir(current + search)
 
-    def option_callback(self, selected_option):
-        self.selected_option = selected_option
 
-    def converter(self, obj):
-        dialog = MDDialog(title= "URL", 
-                          text= self.url.text,
-                          size_hint=(0.5, 1))
-        dialog.open()
+def to_mp3(self):
 
-    def change_format(self, value):
-        self.format = value
+    video_url = self.parent.children[3].text
+    filename = self.parent.children[2].text
+    
+    check_directory()
+
+    video_info= youtube_dl.YoutubeDL().extract_info(url= video_url,download= False)
+
+    clean_filename = sanitize_filepath(filename) + ".mp3"
+
+    options= {
+                'format': 'bestaudio/best[ext=mp3]',
+                'keepvideo': False,
+                'outtmpl': clean_filename,
+            }
+
+    try:
+        with youtube_dl.YoutubeDL(options) as ydl:
+            ydl.download([video_info['webpage_url']])
+    except Exception as e:
+        print(e)
+
+    current = os.getcwd()
+
+    shutil.move(current + '\\' + clean_filename, current + '\\Downloaded')
+
+def to_mp4(self):
+
+    video_url = self.parent.children[3].text
+    filename = self.parent.children[2].text
+    check_directory()
+
+    video_info= youtube_dl.YoutubeDL().extract_info(url= video_url,download= False)
+
+    clean_filename = sanitize_filepath(filename) + ".mp4"
+        
+    options= {
+                'format': 'bestvideo[ext=mp4]+bestaudio[ext=mp4]/mp4',
+                'keepvideo': False,
+                'outtmpl': clean_filename,
+            }
+
+    try:
+        with youtube_dl.YoutubeDL(options) as ydl:
+            ydl.download([video_info['webpage_url']])
+    except Exception as e:
+        print(e)
+
+    current = os.getcwd()
+
+    shutil.move(current + '\\' + clean_filename, current + '\\Downloaded')
 
 if __name__ == '__main__':
+    
     YoutubeConverter().run()
